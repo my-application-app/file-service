@@ -1,0 +1,65 @@
+name: File Service CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Check kubectl connection
+      run: |
+        kubectl cluster-info --request-timeout=10s
+        echo "✅ Kubernetes connection verified"
+    
+    - name: Apply Kubernetes manifests
+      run: |
+        echo "📦 Applying File Service Kubernetes manifests..."
+        
+        # Apply storage first
+        kubectl apply -f k8s/pv.yaml
+        kubectl apply -f k8s/pvc.yaml
+        
+        # Apply service resources
+        kubectl apply -f k8s/service.yaml
+        kubectl apply -f k8s/deployment.yaml
+        kubectl apply -f k8s/hpa.yaml
+        kubectl apply -f k8s/network-policies.yaml
+        
+        echo "✅ All Kubernetes manifests applied"
+    
+    - name: Verify deployment
+      run: |
+        echo "🔍 Verifying file service deployment..."
+        
+        # Check PV and PVC
+        kubectl get pv file-uploads-pv
+        kubectl get pvc -n bedrock-chat-v2 file-uploads-pvc
+        
+        # Check pod status
+        kubectl get pods -n bedrock-chat-v2 -l app=file-service
+        
+        # Check service
+        kubectl get svc -n bedrock-chat-v2 file-service
+        
+        # Check HPA
+        kubectl get hpa -n bedrock-chat-v2 file-service-hpa
+        
+        echo "✅ File service deployment verification completed"
+    
+    - name: Deployment Summary
+      run: |
+        echo "🎉 File Service CD Pipeline completed successfully!"
+        echo "📋 Deployment Summary:"
+        echo "   Namespace: bedrock-chat-v2"
+        echo "   Commit: ${{ github.sha }}"
+        echo "   Storage: PV + PVC for file uploads"
+        
+        # Get final status
+        kubectl get all -n bedrock-chat-v2 -l app=file-service
