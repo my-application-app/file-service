@@ -16,11 +16,11 @@ jobs:
     - name: Check kubectl connection
       run: |
         kubectl cluster-info --request-timeout=10s
-        echo "✅ Kubernetes connection verified"
+        echo " Kubernetes connection verified"
     
     - name: Apply Kubernetes manifests
       run: |
-        echo "📦 Applying File Service Kubernetes manifests..."
+        echo " Applying File Service Kubernetes manifests..."
         
         # Apply storage first
         kubectl apply -f k8s/pv.yaml
@@ -32,11 +32,11 @@ jobs:
         kubectl apply -f k8s/hpa.yaml
         kubectl apply -f k8s/network-policies.yaml
         
-        echo "✅ All Kubernetes manifests applied"
+        echo " All Kubernetes manifests applied"
     
     - name: Verify deployment
       run: |
-        echo "🔍 Verifying file service deployment..."
+        echo " Verifying file service deployment..."
         
         # Check PV and PVC
         kubectl get pv file-uploads-pv
@@ -51,12 +51,12 @@ jobs:
         # Check HPA
         kubectl get hpa -n bedrock-chat-v2 file-service-hpa
         
-        echo "✅ File service deployment verification completed"
+        echo " File service deployment verification completed"
     
     - name: Deployment Summary
       run: |
-        echo "🎉 File Service CD Pipeline completed successfully!"
-        echo "📋 Deployment Summary:"
+        echo " File Service CD Pipeline completed successfully!"
+        echo " Deployment Summary:"
         echo "   Namespace: bedrock-chat-v2"
         echo "   Commit: ${{ github.sha }}"
         echo "   Storage: PV + PVC for file uploads"
